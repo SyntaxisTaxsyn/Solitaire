@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Solitaire</title>
+  <link rel="canonical" href="https://syntaxistaxsyn.github.io/Solitaire/" />
+  <link rel="manifest" href="/Solitaire/manifest.webmanifest">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+      html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+
+    body {
+      background: url('baize.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    .card {
+      position: absolute;
+      width: 12vw;
+      height: auto;
+      touch-action: none;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- 7 cards -->
+  <img src="card1.png" class="card" style="left: 5vw; top: 10vh;" />
+  <img src="card2.png" class="card" style="left: 20vw; top: 10vh;" />
+  <img src="card3.png" class="card" style="left: 35vw; top: 10vh;" />
+  <img src="card4.png" class="card" style="left: 50vw; top: 10vh;" />
+  <img src="card5.png" class="card" style="left: 65vw; top: 10vh;" />
+  <img src="card6.png" class="card" style="left: 80vw; top: 10vh;" />
+  <img src="card7.png" class="card" style="left: 30vw; top: 30vh;" />
+
+  <script>
+    const cards = document.querySelectorAll('.card');
+
+    cards.forEach(card => {
+      let offsetX = 0, offsetY = 0;
+
+      const onTouchStart = (e) => {
+        const touch = e.touches[0];
+        const rect = card.getBoundingClientRect();
+        offsetX = touch.clientX - rect.left;
+        offsetY = touch.clientY - rect.top;
+
+        card.style.zIndex = 1000; // bring to front
+
+        document.addEventListener('touchmove', onTouchMove);
+        document.addEventListener('touchend', onTouchEnd);
+      };
+
+      const onTouchMove = (e) => {
+        e.preventDefault(); // prevent scrolling
+        const touch = e.touches[0];
+        card.style.left = `${touch.clientX - offsetX}px`;
+        card.style.top = `${touch.clientY - offsetY}px`;
+      };
+
+      const onTouchEnd = () => {
+        document.removeEventListener('touchmove', onTouchMove);
+        document.removeEventListener('touchend', onTouchEnd);
+      };
+
+      card.addEventListener('touchstart', onTouchStart);
+    });
+  </script>
+  
+  <script>
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.register (
+          '/Solitaire/sw.js',
+          {scope: '/Solitaire/'}
+        )
+      }
+  </script>
+  
+  <!--<script src="js/app.js"></script>-->
+</body>
+</html>
