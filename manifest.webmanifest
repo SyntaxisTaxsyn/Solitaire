@@ -1,0 +1,17 @@
+{
+  "name": "Solitaire",
+  "short_name": "Solitaire",
+  "description": "Solitaire PWA",
+  "scope": "/Solitaire/",
+  "start_url": "/Solitaire/",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "display": "standalone", 
+  "icons": [
+      {
+        "src": "/Solitaire/Img/AppIcon.png",
+        "type": "image/png",
+        "sizes": "128x128"
+      }
+  ]
+}
