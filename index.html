@@ -9,80 +9,175 @@
   <link rel="stylesheet" href="css/styles.css">
   <style>
       html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      width: 100%;
-      height: 100%;
-    }
+          margin: 0;
+          padding: 0;
+          width: 100vw;
+          height: 100vh;
+          overflow: hidden;
+      }
 
-    body {
-      background: url('baize.jpg') no-repeat center center fixed;
-      background-size: cover;
-    }
+      body {
+          background: url('Img/Board/greenbaize.png') no-repeat center center fixed;
+          background-size: cover;
+      }
 
-    .card {
-      position: absolute;
-      width: 12vw;
-      height: auto;
-      touch-action: none;
-      user-select: none;
-    }
+      svg {
+          width: 100vw;
+          height: 100vh;
+          display: block;
+      }
+
+      .card {
+          cursor: grab;
+          pointer-events: all;
+      }
+
+          .card:active {
+              cursor: grabbing;
+          }
   </style>
 </head>
 <body>
-  <!-- 7 cards -->
-  <img src="card1.png" class="card" style="left: 5vw; top: 10vh;" />
-  <img src="card2.png" class="card" style="left: 20vw; top: 10vh;" />
-  <img src="card3.png" class="card" style="left: 35vw; top: 10vh;" />
-  <img src="card4.png" class="card" style="left: 50vw; top: 10vh;" />
-  <img src="card5.png" class="card" style="left: 65vw; top: 10vh;" />
-  <img src="card6.png" class="card" style="left: 80vw; top: 10vh;" />
-  <img src="card7.png" class="card" style="left: 30vw; top: 30vh;" />
+    <!-- Fullscreen SVG with cards -->
+    <svg id="gameboard" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+        <text id="message" x="-60" y="90" style="font-size:5px;fill:white;">text</text>
+        <image href="Img/Cards/Clubs/C1.png" class="card" x="5" y="10" width="12" height="auto" />
+        <image href="Img/Cards/Clubs/C2.png" class="card" x="20" y="10" width="12" height="auto" />
+        <image href="Img/Cards/Clubs/C3.png" class="card" x="35" y="10" width="12" height="auto" />
+        <image href="Img/Cards/Clubs/C4.png" class="card" x="50" y="10" width="12" height="auto" />
+        <image href="Img/Cards/Clubs/C5.png" class="card" x="65" y="10" width="12" height="auto" />
+        <image href="Img/Cards/Clubs/C6.png" class="card" x="80" y="10" width="12" height="auto" />
+        <image href="Img/Cards/Clubs/C7.png" class="card" x="95" y="10" width="12" height="auto" />
 
-  <script>
-    const cards = document.querySelectorAll('.card');
+    </svg>
 
-    cards.forEach(card => {
-      let offsetX = 0, offsetY = 0;
+    
 
-      const onTouchStart = (e) => {
-        const touch = e.touches[0];
-        const rect = card.getBoundingClientRect();
-        offsetX = touch.clientX - rect.left;
-        offsetY = touch.clientY - rect.top;
+    <script>
+        const svg = document.getElementById('gameboard');
+        const cards = svg.querySelectorAll('.card');
 
-        card.style.zIndex = 1000; // bring to front
+        cards.forEach(card => {
+            let offsetX = 0, offsetY = 0;
+            let isDragging = false;
+            let curX = 0;
+            let curY = 0;
 
-        document.addEventListener('touchmove', onTouchMove);
-        document.addEventListener('touchend', onTouchEnd);
-      };
+            const getCoords = (e) => {
+                if (e.touches) {
+                    const touch = e.touches[0];
+                    const pt = svg.createSVGPoint();
+                    pt.x = touch.clientX;
+                    pt.y = touch.clientY;
+                    return pt.matrixTransform(svg.getScreenCTM().inverse());
+                } else {
+                    const pt = svg.createSVGPoint();
+                    pt.x = e.clientX;
+                    pt.y = e.clientY;
+                    return pt.matrixTransform(svg.getScreenCTM().inverse());
+                }
+            };
 
-      const onTouchMove = (e) => {
-        e.preventDefault(); // prevent scrolling
-        const touch = e.touches[0];
-        card.style.left = `${touch.clientX - offsetX}px`;
-        card.style.top = `${touch.clientY - offsetY}px`;
-      };
+            const onStart = (e) => {
+                const coords = getCoords(e);
+                offsetX = coords.x - parseFloat(card.getAttribute('x'));
+                offsetY = coords.y - parseFloat(card.getAttribute('y'));
+                isDragging = true;
 
-      const onTouchEnd = () => {
-        document.removeEventListener('touchmove', onTouchMove);
-        document.removeEventListener('touchend', onTouchEnd);
-      };
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onEnd);
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('touchend', onEnd);
 
-      card.addEventListener('touchstart', onTouchStart);
-    });
-  </script>
-  
-  <script>
-      if (navigator.serviceWorker) {
-        navigator.serviceWorker.register (
-          '/Solitaire/sw.js',
-          {scope: '/Solitaire/'}
-        )
-      }
-  </script>
-  
-  <!--<script src="js/app.js"></script>-->
+                e.preventDefault();
+            };
+
+            const onMove = (e) => {
+                if (!isDragging) return;
+                const coords = getCoords(e);
+                card.setAttribute('x', coords.x - offsetX);
+                card.setAttribute('y', coords.y - offsetY);
+                curX = coords.x - offsetX;
+                curY = coords.y - offsetY;
+                document.getElementById('message').textContent = "X = " + parseInt(curX,10) + ", Y = " + parseInt(curY,10);
+                e.preventDefault();
+            };
+
+            const onEnd = () => {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onEnd);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', onEnd);
+            };
+
+            card.addEventListener('mousedown', onStart);
+            card.addEventListener('touchstart', onStart, { passive: false });
+        });
+    </script>
+
+    <!--<script>
+        const cards = document.querySelectorAll('.card');
+
+        cards.forEach(card => {
+            let offsetX = 0, offsetY = 0;
+            let isDragging = false;
+
+            const getEventPosition = (e) => {
+                if (e.touches && e.touches.length > 0) {
+                    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                } else {
+                    return { x: e.clientX, y: e.clientY };
+                }
+            };
+
+            const onStart = (e) => {
+                const { x, y } = getEventPosition(e);
+                const rect = card.getBoundingClientRect();
+                offsetX = x - rect.left;
+                offsetY = y - rect.top;
+                card.style.zIndex = 1000;
+                isDragging = true;
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onEnd);
+                document.addEventListener('touchmove', onMove, { passive: false });
+                document.addEventListener('touchend', onEnd);
+            };
+
+            const onMove = (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const { x, y } = getEventPosition(e);
+                card.style.left = `${x - offsetX}px`;
+                card.style.top = `${y - offsetY}px`;
+            };
+
+            const onEnd = () => {
+                isDragging = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onEnd);
+                document.removeEventListener('touchmove', onMove);
+                document.removeEventListener('touchend', onEnd);
+            };
+
+            card.addEventListener('mousedown', onStart);
+            card.addEventListener('touchstart', onStart, { passive: false });
+            card.addEventListener('dragstart', (e) => e.preventDefault());
+
+        });
+    </script>-->
+
+
+    <script>
+        if (navigator.serviceWorker) {
+            navigator.serviceWorker.register(
+                '/Solitaire/sw.js',
+                { scope: '/Solitaire/' }
+            )
+        }
+    </script>
+
+    <!--<script src="js/app.js"></script>-->
 </body>
 </html>
